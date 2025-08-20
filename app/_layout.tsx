@@ -1,12 +1,20 @@
 //import { Stack } from "expo-router";
 import { Slot } from "expo-router";
 import { SQLiteProvider, type SQLiteDatabase } from "expo-sqlite";
+import { Suspense } from "react";
+import { ActivityIndicator } from "react-native";
 
 export default function RootLayout() {
   return (
-    <SQLiteProvider databaseName="reports.db" onInit={migrateDbIfNeeded}>
-      <Slot />
-    </SQLiteProvider>
+    // Adding a suspense fallback here will prevent the app from crashing when the database is not ready
+    // How?
+    // When the database is not ready, the app will show a loading indicator
+    // When the database is ready, the app will show the content
+    <Suspense fallback={<ActivityIndicator />}>
+      <SQLiteProvider databaseName="reports.db" onInit={migrateDbIfNeeded}>
+        <Slot />
+      </SQLiteProvider>
+    </Suspense>
   );
   //  return <Stack screenOptions={{ headerShown: false }} />;
 }

@@ -1,8 +1,9 @@
 import LocationForm from "@/components/LocationForm";
+import LocationListItem from "@/components/LocationListItem";
 import { Location } from "@/types/types";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 
 export default function Page() {
   const db = useSQLiteContext();
@@ -16,7 +17,6 @@ export default function Page() {
       const locations = await db.getAllAsync<Location>(
         `SELECT * FROM locations`
       );
-      console.log("🚀 ~ loadLocations ~ locations:", locations);
       setLocations(locations);
     } catch (error) {
       console.error("Error loading locations:", error);
@@ -35,6 +35,16 @@ export default function Page() {
   return (
     <View style={styles.container}>
       <LocationForm onSubmit={addLocation} />
+      {/* If there is an ID field in the data, no need to add a keyExtractor*/}
+      <FlatList
+        data={locations}
+        renderItem={({ item }) => (
+          <LocationListItem location={item} onDelete={loadLocations} />
+        )}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>No locations added yet</Text>
+        }
+      />
     </View>
   );
 }
@@ -42,5 +52,11 @@ export default function Page() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  emptyText: {
+    fontSize: 16,
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 20,
   },
 });
