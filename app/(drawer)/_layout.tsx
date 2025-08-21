@@ -39,7 +39,6 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
       const locations = await db.getAllAsync<Location>(
         `SELECT * FROM locations`
       );
-      console.log("🚀 ~ loadLocations ~ locations:", locations);
       setLocations(locations);
     } catch (error) {
       console.error("Error loading locations:", error);
@@ -47,7 +46,7 @@ function CustomDrawerContent(props: DrawerContentComponentProps) {
   }
 
   function routeToLocation(locationId: number) {
-    router.push(`/location/${locationId}`);
+    router.navigate(`/location/${locationId}`);
     // Because DrawerItem didn't clost the drawer automatically when pressing it, different from the <DrawerItemList>
     // We need to close the drawer manually
     props.navigation.dispatch(DrawerActions.closeDrawer());
@@ -117,7 +116,11 @@ export default function Layout() {
         <Drawer.Screen name="index" options={{ title: "Manage Location" }} />
         <Drawer.Screen
           name="location"
-          options={{ title: "Location", drawerItemStyle: { display: "none" } }}
+          options={{
+            title: "Location",
+            drawerItemStyle: { display: "none" },
+            headerShown: false,
+          }}
         />
       </Drawer>
     </GestureHandlerRootView>

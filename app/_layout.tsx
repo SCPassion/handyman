@@ -43,6 +43,11 @@ async function migrateDbIfNeeded(db: SQLiteDatabase) {
 `);
     await db.runAsync("INSERT INTO locations (name) VALUES (?)", "School");
     await db.runAsync("INSERT INTO locations (name) VALUES (?)", "Hospital");
+    // Insert more test data for locations
+    await db.runAsync("INSERT INTO locations (name) VALUES (?)", "Home");
+    await db.runAsync("INSERT INTO locations (name) VALUES (?)", "Office");
+
+    // Insert more test tasks with proper locationId references
     await db.runAsync(
       "INSERT INTO tasks (title, description, isUrgent, locationId) VALUES (?, ?, ?, ?)",
       ["Task 1", "Description 1", 0, 1]
@@ -50,6 +55,18 @@ async function migrateDbIfNeeded(db: SQLiteDatabase) {
     await db.runAsync(
       "INSERT INTO tasks (title, description, isUrgent, locationId) VALUES (?, ?, ?, ?)",
       ["Task 2", "Description 2", 1, 2]
+    );
+    await db.runAsync(
+      "INSERT INTO tasks (title, description, isUrgent, locationId) VALUES (?, ?, ?, ?)",
+      ["Task 3", "Description 3", 0, 1]
+    );
+    await db.runAsync(
+      "INSERT INTO tasks (title, description, isUrgent, locationId) VALUES (?, ?, ?, ?)",
+      ["Task 4", "Description 4", 1, 3]
+    );
+    await db.runAsync(
+      "INSERT INTO tasks (title, description, isUrgent, locationId) VALUES (?, ?, ?, ?)",
+      ["Task 5", "Description 5", 0, 2]
     );
 
     currentDbVersion = 1;
