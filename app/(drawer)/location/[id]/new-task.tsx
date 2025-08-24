@@ -1,10 +1,12 @@
 import { Task } from "@/types/types";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Image,
   StyleSheet,
   Switch,
   Text,
@@ -15,8 +17,6 @@ import {
 
 export default function newTask() {
   const { id: locationId, taskId } = useLocalSearchParams();
-  console.log("🚀 ~ newTask ~ taskId:", taskId);
-  console.log("🚀 ~ newTask ~ locationId:", locationId);
 
   const router = useRouter();
   const db = useSQLiteContext();
@@ -57,6 +57,7 @@ export default function newTask() {
 
     if (isUrgent) {
       // give notification
+      scheduleNotification(newTaskId, title);
     }
 
     router.back(); // go back to the previous screen
@@ -81,6 +82,7 @@ export default function newTask() {
     if (taskId) {
       loadTaskData();
     }
+    Notifications.requestPermissionsAsync(); // ask for permission to send notifications
   }, [taskId]);
 
   async function pickImage() {
@@ -97,6 +99,22 @@ export default function newTask() {
     }
   }
 
+  async function scheduleNotification(taskId: number, title: string) {
+    Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Urgent Task Reminder",
+        body: `Don't forget about ${title}!`,
+        data: {
+          taskId: taskId.toString(),
+          locationId: locationId.toString(),
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 2,
+      },
+    });
+  }
   return (
     <View style={styles.container}>
       <TextInput
@@ -122,6 +140,14 @@ export default function newTask() {
           trackColor={{ true: "#F2A310", false: "#767577" }}
         />
       </View>
+
+      {imageUri && <Image source={{ uri: imageUri }} style={styles.image} />}
+
+      <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+        <Text style={styles.buttonText}>
+          {imageUri ? "Change Image" : "Add Image"}
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={handleSaveTask}>
         <Text style={styles.buttonText}>
@@ -181,5 +207,20 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
+  },
+  imageButton: {
+    backgroundColor: "#3498db",
+    padding: 16,
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 16,
+  },
+  image: {
+    width: "100%",
+    height: 200,
+    resizeMode: "contain",
+    borderRadius: 4,
+    marginBottom: 16,
   },
 });

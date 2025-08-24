@@ -1,10 +1,49 @@
 //import { Stack } from "expo-router";
-import { Slot } from "expo-router";
+import * as Notifications from "expo-notifications";
+import { router, Slot } from "expo-router";
 import { SQLiteProvider, type SQLiteDatabase } from "expo-sqlite";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { ActivityIndicator } from "react-native";
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 export default function RootLayout() {
+  useEffect(() => {
+    const receivedSubscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("📨 Notification received (foreground):", notification);
+        console.log("📱 Data:", notification.request.content.data);
+      }
+    );
+
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        // This will trigger when the user taps on the notification, reacting to the notification
+        console.log("📨 Notification response received:", response);
+        // Extract the data defined in the data object in the new-task.tsx file
+        const locationId =
+          response.notification.request.content.data.locationId;
+        const taskId = response.notification.request.content.data.taskId;
+
+        console.log("📱 Location ID:", locationId);
+        console.log("📱 Task ID:", taskId);
+
+        if (taskId && locationId) {
+          router.push(`/location/${locationId}/new-task?taskId=${taskId}`);
+        }
+      });
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
+  }, []);
   return (
     // Adding a suspense fallback here will prevent the app from crashing when the database is not ready
     // How?
