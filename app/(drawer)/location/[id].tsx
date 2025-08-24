@@ -62,7 +62,7 @@ export default function Page() {
         renderItem={({ item }) => <TaskListItem task={item} />}
         ListEmptyComponent={() => (
           <View style={styles.emptyContainer}>
-            <Text>No tasks found</Text>
+            <Text style={styles.emptyText}>No tasks found</Text>
           </View>
         )}
       />
@@ -81,6 +81,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
+  },
+  emptyText: {
+    color: "#000",
+    fontSize: 16,
+    textAlign: "center",
   },
   fab: {
     position: "absolute",

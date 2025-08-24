@@ -1,8 +1,10 @@
 import { Task } from "@/types/types";
+import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useSQLiteContext } from "expo-sqlite";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   StyleSheet,
   Switch,
   Text,
@@ -37,24 +39,63 @@ export default function newTask() {
   }
 
   async function handleSaveTask() {
-    let newTaskId: Number;
+    let newTaskId = Number(taskId);
     if (taskId) {
       // update existing task
+      await db.runAsync(
+        "UPDATE tasks SET title = ?, description = ?, isUrgent = ?, imageUri = ? WHERE id = ?",
+        [title, description, isUrgent ? 1 : 0, imageUri, Number(taskId)]
+      );
     } else {
       // insert new task
+      const result = await db.runAsync(
+        "INSERT INTO tasks (locationId, title, description, isUrgent, imageUri) VALUES (?, ?, ?, ?, ?)",
+        [Number(locationId), title, description, isUrgent ? 1 : 0, imageUri]
+      );
+      newTaskId = result.lastInsertRowId;
     }
+
+    if (isUrgent) {
+      // give notification
+    }
+
+    router.back(); // go back to the previous screen
   }
 
   async function handleFinishTask() {
-    await db.runAsync("UPDATE tasks SET isFinished = 1 WHERE id = ?", [
-      Number(taskId),
+    Alert.alert("Finish Task", "Are you sure you want to finish this task?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Finish",
+        onPress: async () => {
+          await db.runAsync("UPDATE tasks SET isFinished = 1 WHERE id = ?", [
+            Number(taskId),
+          ]);
+        },
+        style: "destructive",
+      },
     ]);
   }
 
   useEffect(() => {
     if (taskId) {
+      loadTaskData();
     }
   }, [taskId]);
+
+  async function pickImage() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      // if the user picked an image
+      setImageUri(result.assets[0].uri);
+    }
+  }
 
   return (
     <View style={styles.container}>
